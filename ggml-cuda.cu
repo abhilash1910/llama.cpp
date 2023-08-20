@@ -6257,6 +6257,11 @@ void ggml_cuda_assign_buffers_impl(struct ggml_tensor * tensor, bool scratch, bo
     }
 
     tensor->backend = GGML_BACKEND_GPU;
+
+    if (scratch) {
+        return;
+    }
+
     struct ggml_tensor_extra_gpu * extra;
 
     const bool inplace = (tensor->src[0] != nullptr && tensor->src[0]->data == tensor->data) ||
@@ -6303,6 +6308,34 @@ void ggml_cuda_assign_buffers_impl(struct ggml_tensor * tensor, bool scratch, bo
         extra = new ggml_tensor_extra_gpu;
         memset(extra, 0, sizeof(*extra));
         extra->data_device[g_main_device] = data;
+    }
+
+    tensor->extra = extra;
+}
+
+void ggml_cuda_assign_scratch_offset(struct ggml_tensor * tensor, size_t offset) {
+    if (g_scratch_size == 0) {
+        return;
+    }
+    if (g_scratch_buffer == nullptr) {
+        CUDA_CHECK(cudaMalloc(&g_scratch_buffer, g_scratch_size));
+    }
+
+    struct ggml_tensor_extra_gpu * extra = ggml_cuda_alloc_temp_tensor_extra();
+
+    const bool inplace = (tensor->src[0] != nullptr && tensor->src[0]->data == tensor->data) ||
+        tensor->op == GGML_OP_VIEW;
+
+    if (inplace && (tensor->src[0]->backend == GGML_BACKEND_GPU || tensor->src[0]->backend == GGML_BACKEND_GPU_SPLIT)) {
+        struct ggml_tensor_extra_gpu * src0_extra = (ggml_tensor_extra_gpu * ) tensor->src[0]->extra;
+        char * src0_ddc = (char *) src0_extra->data_device[g_main_device];
+        size_t offset = 0;
+        if (tensor->op == GGML_OP_VIEW) {
+            memcpy(&offset, tensor->op_params, sizeof(size_t));
+        }
+        extra->data_device[g_main_device] = src0_ddc + offset;
+    } else {
+        extra->data_device[g_main_device] = (char *) g_scratch_buffer + offset;
     }
 
     tensor->extra = extra;
