@@ -1400,13 +1400,13 @@ static struct ggml_cgraph * llama_build_graph(
 
 #ifdef GGML_USE_CUBLAS
     if (n_gpu_layers > n_layer) {
-        offload_func_nr = ggml_cuda_assign_buffers;
+        offload_func_nr = ggml_cuda_assign_buffers_no_alloc;
     }
     if (n_gpu_layers > n_layer + 1) {
-        offload_func_v  = ggml_cuda_assign_buffers;
+        offload_func_v  = ggml_cuda_assign_buffers_no_alloc;
     }
     if (n_gpu_layers > n_layer + 2) {
-        offload_func_kq = ggml_cuda_assign_buffers;
+        offload_func_kq = ggml_cuda_assign_buffers_no_alloc;
     }
 #endif // GGML_USE_CUBLAS
 
@@ -1424,7 +1424,7 @@ static struct ggml_cgraph * llama_build_graph(
 
 #ifdef GGML_USE_CUBLAS
         if (il >= i_gpu_start) {
-            offload_func = ggml_cuda_assign_buffers;
+            offload_func = ggml_cuda_assign_buffers_no_alloc;
         }
 #endif // GGML_USE_CUBLAS
 
@@ -3297,13 +3297,6 @@ struct llama_context * llama_new_context_with_model(
 
             LLAMA_LOG_INFO("%s: compute buffer total size = %7.2f MB\n", __func__, (ctx->buf_compute.size + alloc_size) / 1024.0 / 1024.0);
 
-            // debug - for comparison with scratch buffer
-            //size_t prev_req =
-            //    MEM_REQ_SCRATCH0(hparams.n_ctx).at(ctx->model.type) +
-            //    MEM_REQ_SCRATCH1().at(ctx->model.type) +
-            //    MEM_REQ_EVAL().at(ctx->model.type);
-            //LLAMA_LOG_INFO("%s: (debug) equivalent with scratch buffer = %7.2f MB\n", __func__, prev_req / 1024.0 / 1024.0);
-
             // recreate allocator with exact memory requirements
             ggml_allocr_free(ctx->alloc);
 
@@ -3315,16 +3308,14 @@ struct llama_context * llama_new_context_with_model(
             }
 #endif
 
-
 #ifdef GGML_USE_CUBLAS
-        if (params.low_vram) {
-            LLAMA_LOG_INFO("%s: not allocating a VRAM scratch buffer due to low VRAM option\n", __func__);
-            ggml_cuda_set_scratch_size(0); // disable scratch
-        } else {
-            ggml_cuda_set_scratch_size(alloc_size);
-            LLAMA_LOG_INFO("%s: allocating %.2f MB VRAM for the scratch buffer\n", __func__, alloc_size / 1024.0 / 1024.0);
-        }
-
+            if (params.low_vram) {
+                LLAMA_LOG_INFO("%s: not allocating a VRAM scratch buffer due to low VRAM option\n", __func__);
+                ggml_cuda_set_scratch_size(0); // disable scratch
+            } else {
+                ggml_cuda_set_scratch_size(alloc_size);
+                LLAMA_LOG_INFO("%s: allocating %.2f MB VRAM for the scratch buffer\n", __func__, alloc_size / 1024.0 / 1024.0);
+            }
 #endif
         }
     }
