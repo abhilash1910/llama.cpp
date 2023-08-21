@@ -78,10 +78,6 @@ enum e_model {
 static const size_t kB = 1024;
 static const size_t MB = 1024*1024;
 
-// computed for n_ctx == 2048
-// TODO: dynamically determine these sizes
-//       needs modifications in ggml
-
 typedef void (*offload_func_t)(struct ggml_tensor * tensor);
 
 void llama_nop(struct ggml_tensor * tensor) { // don't offload by default
@@ -101,39 +97,6 @@ static void ggml_graph_compute_helper(std::vector<uint8_t> & buf, ggml_cgraph * 
     }
 
     ggml_graph_compute(graph, &plan);
-}
-
-
-// TODO: remove, temporary for comparison with graph allocator
-
-// amount of VRAM needed per batch size to hold temporary results
-// the values for 3b are not derived from testing but instead chosen conservatively
-static const std::map<e_model, size_t> & VRAM_REQ_SCRATCH_BASE()
-{
-    static std::map<e_model, size_t> k_sizes = {
-        { MODEL_3B,   512ull * kB },
-        { MODEL_7B,   512ull * kB },
-        { MODEL_13B,  640ull * kB },
-        { MODEL_30B,  768ull * kB },
-        { MODEL_65B, 1280ull * kB },
-        { MODEL_70B, 1280ull * kB },
-    };
-    return k_sizes;
-}
-
-// amount of VRAM needed per batch size and context to hold temporary results
-// the values for 3b are not derived from testing but instead chosen conservatively
-static const std::map<e_model, size_t> & VRAM_REQ_SCRATCH_PER_CONTEXT()
-{
-    static std::map<e_model, size_t> k_sizes = {
-        { MODEL_3B,  128ull },
-        { MODEL_7B,  128ull },
-        { MODEL_13B, 160ull },
-        { MODEL_30B, 208ull },
-        { MODEL_65B, 256ull },
-        { MODEL_70B, 256ull },
-    };
-    return k_sizes;
 }
 
 // default hparams (LLaMA 7B)
@@ -1101,7 +1064,6 @@ static void llama_model_load_internal(
 
     // prepare memory for the weights
     size_t vram_weights = 0;
-    size_t vram_scratch = 0;
     {
         const uint32_t n_embd     = hparams.n_embd;
         const uint32_t n_embd_gqa = hparams.n_embd_gqa();
@@ -1192,24 +1154,7 @@ static void llama_model_load_internal(
         LLAMA_LOG_INFO("%s: mem required  = %7.2f MB (+ %7.2f MB per state)\n", __func__,
                 mem_required / 1024.0 / 1024.0, mem_required_state / 1024.0 / 1024.0);
 
-        (void) vram_scratch;
         (void) n_batch;
-#ifdef GGML_USE_CUBLAS
-        if (low_vram) {
-            LLAMA_LOG_INFO("%s: (debug) not allocating a VRAM scratch buffer due to low VRAM option\n", __func__);
-            ggml_cuda_set_scratch_size(0); // disable scratch
-        } else {
-            const size_t vram_scratch_base = VRAM_REQ_SCRATCH_BASE().at(model.type);
-            const size_t vram_scratch_per_context = VRAM_REQ_SCRATCH_PER_CONTEXT().at(model.type);
-            vram_scratch = n_batch * (vram_scratch_base + n_ctx * vram_scratch_per_context);
-            //ggml_cuda_set_scratch_size(vram_scratch);
-            if (n_gpu_layers > 0) {
-                LLAMA_LOG_INFO("%s: (debug) not allocating batch_size x (%zd kB + n_ctx x %zd B) = %zd MB VRAM for the scratch buffer\n",
-                        __func__, vram_scratch_base / kB, vram_scratch_per_context,
-                        (vram_scratch + MB - 1) / MB); // round up
-            }
-        }
-#endif // GGML_USE_CUBLAS
 
 #if defined(GGML_USE_CUBLAS) || defined(GGML_USE_CLBLAST)
         const int n_gpu = std::min(n_gpu_layers, int(hparams.n_layer));
@@ -1246,8 +1191,8 @@ static void llama_model_load_internal(
 
         LLAMA_LOG_INFO("%s: offloaded %d/%d layers to GPU\n",
                 __func__, std::min(n_gpu_layers, max_offloadable_layers), max_backend_supported_layers);
-        LLAMA_LOG_INFO("%s: total VRAM used: %zu MB\n",
-                __func__, (vram_weights + vram_scratch + vram_kv_cache + MB - 1) / MB); // round up
+        LLAMA_LOG_INFO("%s: VRAM used: %zu MB\n",
+                __func__, (vram_weights + vram_kv_cache + MB - 1) / MB); // round up
 #else
         (void) n_gpu_layers;
 #endif // defined(GGML_USE_CUBLAS) || defined(GGML_USE_CLBLAST)
@@ -3314,7 +3259,7 @@ struct llama_context * llama_new_context_with_model(
                 ggml_cuda_set_scratch_size(0); // disable scratch
             } else {
                 ggml_cuda_set_scratch_size(alloc_size);
-                LLAMA_LOG_INFO("%s: allocating %.2f MB VRAM for the scratch buffer\n", __func__, alloc_size / 1024.0 / 1024.0);
+                LLAMA_LOG_INFO("%s: VRAM scratch buffer: %.2f MB\n", __func__, alloc_size / 1024.0 / 1024.0);
             }
 #endif
         }

@@ -6329,11 +6329,11 @@ void ggml_cuda_assign_scratch_offset(struct ggml_tensor * tensor, size_t offset)
     if (inplace && (tensor->src[0]->backend == GGML_BACKEND_GPU || tensor->src[0]->backend == GGML_BACKEND_GPU_SPLIT)) {
         struct ggml_tensor_extra_gpu * src0_extra = (ggml_tensor_extra_gpu * ) tensor->src[0]->extra;
         char * src0_ddc = (char *) src0_extra->data_device[g_main_device];
-        size_t offset = 0;
+        size_t view_offset = 0;
         if (tensor->op == GGML_OP_VIEW) {
-            memcpy(&offset, tensor->op_params, sizeof(size_t));
+            memcpy(&view_offset, tensor->op_params, sizeof(size_t));
         }
-        extra->data_device[g_main_device] = src0_ddc + offset;
+        extra->data_device[g_main_device] = src0_ddc + view_offset;
     } else {
         extra->data_device[g_main_device] = (char *) g_scratch_buffer + offset;
     }
