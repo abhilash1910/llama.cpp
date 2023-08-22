@@ -21,7 +21,7 @@
 #if defined(_MSC_VER)
 #pragma warning(disable: 4244 4267) // possible loss of data
 #endif
-
+using namespace sycl;
 static_assert(sizeof(sycl::half) == sizeof(ggml_fp16_t), "wrong fp16 size");
 
 
@@ -308,9 +308,10 @@ static void add_f16_f32_f16(const sycl::half *x, const float *y,
     /*
     DPCT1007:67: Migration of __hadd is not supported.
     */
-    dst[i] = __hadd(
-        x[i], sycl::vec<float, 1>{y[i]}
-                  .convert<sycl::half, sycl::rounding_mode::automatic>()[0]);
+    //dst[i] = sycl::_V1::ext::intel::math::hadd(
+    //    (sycl::half)x[i], sycl::vec<float, 1>{y[i]}
+    //              .convert<sycl::half, sycl::rounding_mode::automatic>()[0]);
+    dst[i] = x[i] + sycl::vec<float, 1>{y[i]}.convert<sycl::half, sycl::rounding_mode::automatic>()[0];
 }
 
 static void mul_f32(const float * x, const float * y, float * dst, const int kx, const int ky,
@@ -6082,8 +6083,9 @@ void ggml_init_cublas() try {
         DPCT1003:77: Migrated API does not return error code. (*, 0) is
         inserted. You may need to rewrite this code.
         */
-        CUDA_CHECK(
-            (g_device_count = dpct::dev_mgr::instance().device_count(), 0));
+        //CUDA_CHECK(
+        //    (g_device_count = dpct::dev_mgr::instance().device_count(), 0));
+        g_device_count = dpct::dev_mgr::instance().device_count();
         GGML_ASSERT(g_device_count <= GGML_CUDA_MAX_DEVICES);
         int64_t total_vram = 0;
         fprintf(stderr, "%s: found %d CUDA devices:\n", __func__, g_device_count);
@@ -6093,9 +6095,9 @@ void ggml_init_cublas() try {
             DPCT1003:78: Migrated API does not return error code. (*, 0) is
             inserted. You may need to rewrite this code.
             */
-            CUDA_CHECK(
-                (dpct::dev_mgr::instance().get_device(id).get_device_info(prop),
-                 0));
+            //CUDA_CHECK(
+            //    (dpct::dev_mgr::instance().get_device(id).get_device_info(prop),
+            //     0));
             /*
             DPCT1005:79: The SYCL device version is different from CUDA Compute
             Compatibility. You may need to rewrite this code.
@@ -6207,7 +6209,7 @@ void *ggml_cuda_host_malloc(size_t size) try {
     //dpct::err0 err =
     //    (ptr = (void *)sycl::malloc_host(size, dpct::get_default_queue()), 0);
     try {
-    dpct::err0 err =
+    void *ptr_ =
         (ptr = (void *)sycl::malloc_host(size, dpct::get_default_queue()));
     }
     catch (sycl::exception const &e) {
@@ -6263,7 +6265,7 @@ catch (sycl::exception const &exc) {
   std::exit(1);
 }
 
-static dpct::err0 ggml_cuda_cpy_tensor_2d(void *dst,
+static void ggml_cuda_cpy_tensor_2d(void *dst,
                                           const struct ggml_tensor *src,
                                           int64_t i3, int64_t i2,
                                           int64_t i1_low, int64_t i1_high,
@@ -6278,7 +6280,8 @@ static dpct::err0 ggml_cuda_cpy_tensor_2d(void *dst,
         kind = dpct::device_to_device;
         struct ggml_tensor_extra_gpu * extra = (ggml_tensor_extra_gpu *) src->extra;
         int id;
-        CUDA_CHECK(id = dpct::dev_mgr::instance().current_device_id());
+        //CUDA_CHECK(id = dpct::dev_mgr::instance().current_device_id());
+        id = dpct::dev_mgr::instance().current_device_id();
         src_ptr = (char *) extra->data_device[id];
     } else {
         GGML_ASSERT(false);
@@ -6302,7 +6305,7 @@ static dpct::err0 ggml_cuda_cpy_tensor_2d(void *dst,
         inserted. You may need to rewrite this code.
         */
         //return (stream->memcpy(dst_ptr, x, i1_diff * nb1), 0);
-        return (stream->memcpy(dst_ptr, x, i1_diff * nb1));
+        stream->memcpy(dst_ptr, x, i1_diff * nb1);
     } else if (nb0 == ts) {
         /*
         DPCT1003:94: Migrated API does not return error code. (*, 0) is
@@ -6311,8 +6314,8 @@ static dpct::err0 ggml_cuda_cpy_tensor_2d(void *dst,
         //return (dpct::async_dpct_memcpy(dst_ptr, ts * ne0 / bs, x, nb1,
         //                                ts * ne0 / bs, i1_diff, kind, *stream),
         //        0);
-        return (dpct::async_dpct_memcpy(dst_ptr, ts * ne0 / bs, x, nb1,
-                                        ts * ne0 / bs, i1_diff, kind, *stream));
+        dpct::async_dpct_memcpy(dst_ptr, ts * ne0 / bs, x, nb1,
+                                        ts * ne0 / bs, i1_diff, kind, *stream);
     } else {
         for (int64_t i1 = 0; i1 < i1_diff; i1++) {
             const void * rx = (const void *) ((const char *) x + i1*nb1);
@@ -6327,18 +6330,18 @@ static dpct::err0 ggml_cuda_cpy_tensor_2d(void *dst,
             //                             kind, *stream),
             //     0);
             try {
-              dpct::err0 r =
-                (dpct::async_dpct_memcpy(rd, ts / bs, rx, nb0, ts / bs, ne0,
+
+              dpct::async_dpct_memcpy(rd, ts / bs, rx, nb0, ts / bs, ne0,
                                          kind, *stream);
                 
               } catch (sycl::exception const &e) {
                   std::cerr << e.what() << std::endl;
-            }
+              }
 
             
             
         }
-        return 0;
+        
     }
 }
 catch (sycl::exception const &exc) {
@@ -6530,7 +6533,8 @@ inline void ggml_cuda_op_mul_mat_q(const ggml_tensor *src0,
     const int64_t i01_diff = i01_high - i01_low;
 
     int id;
-    CUDA_CHECK(id = dpct::dev_mgr::instance().current_device_id());
+    //CUDA_CHECK(id = dpct::dev_mgr::instance().current_device_id());
+    id = dpct::dev_mgr::instance().current_device_id();
 
     // the main device has a larger memory buffer to hold the results from all GPUs
     // nrows_dst == nrows of the matrix that the dequantize_mul_mat kernel writes into
@@ -6643,8 +6647,8 @@ inline void ggml_cuda_op_mul_mat_vec(const ggml_tensor *src0,
     (void) g_compute_capabilities[0];
 #else
     int id;
-    CUDA_CHECK(id = dpct::dev_mgr::instance().current_device_id());
-
+    //CUDA_CHECK(id = dpct::dev_mgr::instance().current_device_id());
+    id = dpct::dev_mgr::instance().current_device_id();
     bool mul_mat_vec_q_implemented =
         src0->type == GGML_TYPE_Q4_0 ||
         src0->type == GGML_TYPE_Q4_1 ||
@@ -7226,7 +7230,8 @@ static void ggml_cuda_op(const ggml_tensor *src0, const ggml_tensor *src1,
                     if (src1->backend == GGML_BACKEND_CPU) {
                         GGML_ASSERT(!flatten_rows || nrows0 == ggml_nrows(src1));
                         int64_t nrows1 = flatten_rows ? nrows0 : ne11;
-                        CUDA_CHECK(ggml_cuda_cpy_tensor_2d(src1_ddf_i, src1, i03, i02, 0, nrows1, cudaStream_main));
+                        //CUDA_CHECK(ggml_cuda_cpy_tensor_2d(src1_ddf_i, src1, i03, i02, 0, nrows1, cudaStream_main));
+                        ggml_cuda_cpy_tensor_2d(src1_ddf_i, src1, i03, i02, 0, nrows1, cudaStream_main);
                     } else if (src1->backend == GGML_BACKEND_GPU && src1_is_contiguous) {
                         if (id != g_main_device) {
                             GGML_ASSERT(!flatten_rows);
@@ -7355,7 +7360,7 @@ static void ggml_cuda_op(const ggml_tensor *src0, const ggml_tensor *src1,
                     //         cudaStream_main->ext_oneapi_submit_barrier(),
                     //     0));
                     *src0_extra->events[id] =
-                             cudaStream_main->ext_oneapi_submit_barrier()
+                             cudaStream_main->ext_oneapi_submit_barrier();
                 }
             }
         }
@@ -7813,7 +7818,7 @@ void ggml_cuda_transform_tensor(void *data, struct ggml_tensor *tensor) try {
         //            0));
         dpct::get_default_queue()
                        .memcpy(buf, buf_host, original_size)
-                        .wait()
+                        .wait();
         extra->data_device[id] = buf;
 
         if (backend == GGML_BACKEND_GPU_SPLIT) {
@@ -7858,8 +7863,8 @@ void ggml_cuda_free_data(struct ggml_tensor *tensor) try {
             */
             //CUDA_CHECK(
             //    (sycl::free(extra->data_device[id], dpct::get_default_queue()),
-            //     0));
-            sycl::free(extra->data_device(id,dpct::get_default_queue())); 
+            //     0)); 
+            sycl::free(extra->data_device[id], dpct::get_default_queue());
         }
 
         if (extra->events[id] != nullptr) {
@@ -7989,7 +7994,8 @@ void ggml_cuda_assign_buffers_impl(struct ggml_tensor *tensor, bool scratch,
         DPCT1003:143: Migrated API does not return error code. (*, 0) is
         inserted. You may need to rewrite this code.
         */
-        CUDA_CHECK((dpct::get_default_queue().memset(data, 0, size).wait(), 0));
+        //CUDA_CHECK((dpct::get_default_queue().memset(data, 0, size).wait(), 0));
+        dpct::get_default_queue().memset(data, 0, size).wait();
         extra = new ggml_tensor_extra_gpu;
         memset(extra, 0, sizeof(*extra));
         extra->data_device[g_main_device] = data;
