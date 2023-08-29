@@ -12,6 +12,7 @@
 #include "ggml-sycl.dp.hpp"
 #include "ggml.h"
 #include <cmath>
+#include <sycl/ext/intel/math.hpp>
 
 #include <chrono>
 
@@ -308,10 +309,10 @@ static void add_f16_f32_f16(const sycl::half *x, const float *y,
     /*
     DPCT1007:67: Migration of __hadd is not supported.
     */
-    //dst[i] = sycl::_V1::ext::intel::math::hadd(
-    //    (sycl::half)x[i], sycl::vec<float, 1>{y[i]}
-    //              .convert<sycl::half, sycl::rounding_mode::automatic>()[0]);
-    dst[i] = x[i] + sycl::vec<float, 1>{y[i]}.convert<sycl::half, sycl::rounding_mode::automatic>()[0];
+    dst[i] = sycl::_V1::ext::intel::math::hadd(
+        (sycl::half)x[i], sycl::vec<float, 1>{y[i]}
+                  .convert<sycl::half, sycl::rounding_mode::automatic>()[0]);
+    //dst[i] = x[i] + sycl::vec<float, 1>{y[i]}.convert<sycl::half, sycl::rounding_mode::automatic>()[0];
 }
 
 static void mul_f32(const float * x, const float * y, float * dst, const int kx, const int ky,
