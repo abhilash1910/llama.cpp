@@ -86,6 +86,7 @@ option(LLAMA_HIPBLAS                         "llama: use hipBLAS"               
 option(LLAMA_CLBLAST                         "llama: use CLBlast"                               OFF)
 option(LLAMA_METAL                           "llama: use Metal"                                 ${LLAMA_METAL_DEFAULT})
 option(LLAMA_METAL_NDEBUG                    "llama: disable Metal debugging"                   OFF)
+option(LLAMA_SYCL                            "llama: use SYCL"                                  OFF)
 option(LLAMA_MPI                             "llama: use MPI"                                   OFF)
 option(LLAMA_K_QUANTS                        "llama: use k-quants"                              ON)
 option(LLAMA_QKK_64                          "llama: use super-block size of 64 for k-quants"   OFF)
@@ -93,6 +94,7 @@ option(LLAMA_QKK_64                          "llama: use super-block size of 64 
 option(LLAMA_BUILD_TESTS                "llama: build tests"    ${LLAMA_STANDALONE})
 option(LLAMA_BUILD_EXAMPLES             "llama: build examples" ${LLAMA_STANDALONE})
 option(LLAMA_BUILD_SERVER               "llama: build server example"                           ON)
+                       
 
 #
 # Build info header
@@ -409,6 +411,45 @@ if (LLAMA_HIPBLAS)
         message(WARNING "hipBLAS or HIP not found. Try setting CMAKE_PREFIX_PATH=/opt/rocm")
     endif()
 endif()
+
+if (LLAMA_SYCL)
+    set(ENABLE_AOT ats)
+    if (NOT ${CMAKE_C_COMPILER_ID} MATCHES "Clang")
+        message(WARNING "Only LLVM is supported for SYCL")
+    endif()
+    if (NOT ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+        message(WARNING "Only LLVM is supported for SYCL")
+    endif()
+    
+    find_package(SYCL REQUIRED)
+    find_package(IntelDPCPP REQUIRED)
+    
+    # Check SYCL support by the compiler
+    check_cxx_compiler_flag("-fsycl" _fsycl_option)
+    if (_fsycl_option)
+        CHECK_INCLUDE_FILE_CXX("sycl/sycl.hpp" _sycl_header "-fsycl")
+        if (NOT _sycl_header)
+            CHECK_INCLUDE_FILE_CXX("CL/sycl.hpp" _sycl_header_old "-fsycl")
+        endif()
+        if (_sycl_header OR _sycl_header_old)
+            set(_sycl_support TRUE)
+        endif()
+    endif()
+
+    if (_sycl_support)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -fsycl")
+        set(GGML_HEADERS_SYCL ggml-sycl.dp.hpp)
+        set(GGML_SOURCES_SYCL ggml-sycl.dp.cpp)
+        add_library(ggml-sycl OBJECT ${GGML_SOURCES_SYCL} ${GGML_HEADERS_SYCL})
+        add_executable(${PROJECT_NAME} ${GGML_SOURCES_SYCL} ${GGML_HEADERS_SYCL})
+        target_link_libraries(ggml-sycl PRIVATE sycl)
+        target_compile_options(${PROJECT_NAME} PRIVATE ${CMAKE_CXX_FLAGS})
+        //add_sycl_to_target({})
+    else()
+        message(FATAL_ERROR "SYCL Support is not present")
+    endif()
+endif()
+
 
 if (LLAMA_ALL_WARNINGS)
     if (NOT MSVC)
