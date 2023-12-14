@@ -47,7 +47,7 @@ struct beam_search_callback_data {
 // In this case, end-of-beam (eob) is equivalent to end-of-sentence (eos) but this need not always be the same.
 // For example, eob can be flagged due to maximum token length, stop words, etc.
 static bool is_at_eob(const beam_search_callback_data & callback_data, const llama_token * tokens, size_t n_tokens) {
-    return n_tokens && tokens[n_tokens-1] == llama_token_eos(callback_data.ctx);
+    return n_tokens && tokens[n_tokens-1] == llama_token_eos(llama_get_model(callback_data.ctx));
 }
 
 // Function matching type llama_beam_search_callback_fn_t.
@@ -158,8 +158,9 @@ int main(int argc, char ** argv)
     }
     std::cout << std::flush;
 
-    int n_past = llama_get_kv_cache_token_count(ctx);
-    if (llama_eval(ctx, tokens_list.data(), tokens_list.size(), n_past, params.n_threads))
+    int n_past = 0;
+
+    if (llama_decode(ctx, llama_batch_get_one(tokens_list.data(), tokens_list.size(), n_past, 0)))
     {
         fprintf(stderr, "%s : failed to eval prompt.\n" , __func__ );
         return 1;
@@ -169,7 +170,7 @@ int main(int argc, char ** argv)
     beam_search_callback_data callback_data{ctx, {}};
     size_t const beam_width = static_cast<size_t>(params.n_beams);
     int const n_predict = 256;
-    llama_beam_search(ctx, beam_search_callback, &callback_data, beam_width, n_past, n_predict, params.n_threads);
+    llama_beam_search(ctx, beam_search_callback, &callback_data, beam_width, n_past, n_predict);
 
     std::cout << "\n\n";
     for (llama_token const token_id : callback_data.response) {
