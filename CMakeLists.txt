@@ -414,10 +414,10 @@ if (LLAMA_SYCL)
     if (NOT ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
         message(WARNING "Only LLVM is supported for SYCL")
     endif()
-    
+
     find_package(SYCL REQUIRED)
     find_package(IntelDPCPP REQUIRED)
-    
+
     # Check SYCL support by the compiler
     check_cxx_compiler_flag("-fsycl" _fsycl_option)
     if (_fsycl_option)
