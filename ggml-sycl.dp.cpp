@@ -1657,7 +1657,7 @@ vec_dot_q5_0_q8_1_impl(const int *vl, const int *vh, const int *u,
 #else
     assert(false);
     return 0.0f; // only to satisfy the compiler
-#endif 
+#endif
 }
 
 #define VDR_Q5_1_Q8_1_MMVQ 2
@@ -1706,7 +1706,7 @@ vec_dot_q5_1_q8_1_impl(const int *vl, const int *vh, const int *u,
 #else
     assert(false);
     return 0.0f; // only to satisfy the compiler
-#endif 
+#endif
 }
 
 #define VDR_Q8_0_Q8_1_MMVQ 2
@@ -2402,7 +2402,7 @@ load_tiles_q5_0(const void *__restrict__ vx, int *__restrict__ x_ql,
         */
         //qs0 = __vsubss4(qs0, 0x10101010); // subtract 16
         qs0 = qs0 -  0x10101010;
-        
+
         x_ql[i * (2*WARP_SIZE + 1) + 2*k+0] = qs0;
 
         int qs1 = (ql >>  4)   & 0x0F0F0F0F;
@@ -6217,7 +6217,7 @@ void *ggml_cuda_host_malloc(size_t size) try {
                   std::cerr << e.what() << std::endl;
     };
 
-    
+
     /*
     DPCT1000:88: Error handling if-stmt was detected but could not be rewritten.
     */
@@ -6243,7 +6243,7 @@ void *ggml_cuda_host_malloc(size_t size) try {
         //    "cudaGetErrorString is not supported" /*cudaGetErrorString(err)*/);
         //return nullptr;
     //}
-    
+
     return ptr;
 }
 catch (sycl::exception const &exc) {
@@ -6334,15 +6334,15 @@ static void ggml_cuda_cpy_tensor_2d(void *dst,
 
               dpct::async_dpct_memcpy(rd, ts / bs, rx, nb0, ts / bs, ne0,
                                          kind, *stream);
-                
+
               } catch (sycl::exception const &e) {
                   std::cerr << e.what() << std::endl;
               }
 
-            
-            
+
+
         }
-        
+
     }
 }
 catch (sycl::exception const &exc) {
@@ -7382,7 +7382,7 @@ static void ggml_cuda_op(const ggml_tensor *src0, const ggml_tensor *src1,
         inserted. You may need to rewrite this code.
         */
         //CUDA_CHECK((dpct::select_device(id), 0));
-        
+
         if (src0_asq[id] > 0) {
             ggml_cuda_pool_free(src0_ddq[id], src0_asq[id]);
         }
@@ -7864,7 +7864,7 @@ void ggml_cuda_free_data(struct ggml_tensor *tensor) try {
             */
             //CUDA_CHECK(
             //    (sycl::free(extra->data_device[id], dpct::get_default_queue()),
-            //     0)); 
+            //     0));
             sycl::free(extra->data_device[id], dpct::get_default_queue());
         }
 
