@@ -565,17 +565,17 @@ bool gpt_params_parse_ex(int argc, char ** argv, gpt_params & params) {
                 invalid_param = true;
                 break;
             }
-#ifdef GGML_USE_CUBLAS
+#if defined(GGML_USE_CUBLAS) || defined(GGML_USE_SYCL)
             params.main_gpu = std::stoi(argv[i]);
 #else
-            fprintf(stderr, "warning: llama.cpp was compiled without cuBLAS. It is not possible to set a main GPU.\n");
+            fprintf(stderr, "warning: llama.cpp was compiled without cuBLAS or SYCL. It is not possible to set a main GPU.\n");
 #endif
         } else if (arg == "--tensor-split" || arg == "-ts") {
             if (++i >= argc) {
                 invalid_param = true;
                 break;
             }
-#ifdef GGML_USE_CUBLAS
+#if defined(GGML_USE_CUBLAS) || defined(GGML_USE_SYCL)
             std::string arg_next = argv[i];
 
             // split string by , and /
@@ -592,13 +592,13 @@ bool gpt_params_parse_ex(int argc, char ** argv, gpt_params & params) {
                 }
             }
 #else
-            fprintf(stderr, "warning: llama.cpp was compiled without cuBLAS. It is not possible to set a tensor split.\n");
+            fprintf(stderr, "warning: llama.cpp was compiled without cuBLAS or SYCL. It is not possible to set a tensor split.\n");
 #endif // GGML_USE_CUBLAS
         } else if (arg == "--no-mul-mat-q" || arg == "-nommq") {
-#ifdef GGML_USE_CUBLAS
+#if defined(GGML_USE_CUBLAS) || defined(GGML_USE_SYCL)
             params.mul_mat_q = false;
 #else
-            fprintf(stderr, "warning: llama.cpp was compiled without cuBLAS. Disabling mul_mat_q kernels has no effect.\n");
+            fprintf(stderr, "warning: llama.cpp was compiled without cuBLAS or SYCL. Disabling mul_mat_q kernels has no effect.\n");
 #endif // GGML_USE_CUBLAS
         } else if (arg == "--no-mmap") {
             params.use_mmap = false;
@@ -917,6 +917,11 @@ void gpt_print_usage(int /*argc*/, char ** argv, const gpt_params & params) {
     printf("                        use " GGML_CUBLAS_NAME " instead of custom mul_mat_q " GGML_CUDA_NAME " kernels.\n");
     printf("                        Not recommended since this is both slower and uses more VRAM.\n");
 #endif // GGML_USE_CUBLAS
+#ifdef GGML_USE_SYCL
+    printf("  -nommq, --no-mul-mat-q\n");
+    printf("                        use " GGML_SYCL_NAME " instead of custom mul_mat_q " GGML_SYCL_NAME " kernels.\n");
+    printf("                        Not recommended since this is both slower and uses more VRAM.\n");
+#endif // GGML_USE_SYCL
 #endif
     printf("  -gan N, --grp-attn-n N\n");
     printf("                        group-attention factor (default: %d)\n", params.grp_attn_n);
