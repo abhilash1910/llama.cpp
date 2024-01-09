@@ -1876,7 +1876,7 @@ static __dpct_inline__ float vec_dot_q3_K_q8_1_impl_mmvq(
 
         const int vih = ((vh >> i) << 2) & 0x04040404;
 
-        const int vi = __vsubss4(vil, vih);
+        const int vi = dpct::vectorized_binary<sycl::char4>(vil, vih, dpct::sub_sat());
 
         sumf += d8[i] * (dpct::dp4a(vi, u[i], 0) * sc); // SIMD dot product
     }
@@ -2090,7 +2090,7 @@ vec_dot_q6_K_q8_1_impl_mmvq(const int &vl, const int &vh,
 
         const int vih = ((vh >> (4*i)) << 4) & 0x30303030;
 
-        const int vi = __vsubss4((vil | vih), 0x20202020); // vi = (vil | vih) - 32
+        const int vi = dpct::vectorized_binary<sycl::char4>((vil | vih), 0x20202020, dpct::sub_sat()); // vi = (vil | vih) - 32
 
         sumf += d8[i] * (dpct::dp4a(vi, u[i], 0) * sc); // SIMD dot product
     }
@@ -2397,11 +2397,9 @@ load_tiles_q5_0(const void *__restrict__ vx, int *__restrict__ x_ql,
         qs0    |= (qh << 11)   & 0x00001000;  // 1 -> 12
         qs0    |= (qh << 18)   & 0x00100000;  // 2 -> 20
         qs0    |= (qh << 25)   & 0x10000000;  // 3 -> 28
-        /*
-        DPCT1007:68: Migration of __vsubss4 is not supported.
-        */
-        //qs0 = __vsubss4(qs0, 0x10101010); // subtract 16
-        qs0 = qs0 -  0x10101010;
+        
+        qs0 = dpct::vectorized_binary<sycl::char4>(qs0, 0x10101010, dpct::sub_sat()); // subtract 16
+        //qs0 = qs0 -  0x10101010;
 
         x_ql[i * (2*WARP_SIZE + 1) + 2*k+0] = qs0;
 
@@ -2410,11 +2408,8 @@ load_tiles_q5_0(const void *__restrict__ vx, int *__restrict__ x_ql,
         qs1    |= (qh >>  5)   & 0x00001000;  // 17 -> 12
         qs1    |= (qh <<  2)   & 0x00100000;  // 18 -> 20
         qs1    |= (qh <<  9)   & 0x10000000;  // 19 -> 28
-        /*
-        DPCT1007:69: Migration of __vsubss4 is not supported.
-        */
-        //qs1 = __vsubss4(qs1, 0x10101010); // subtract 16
-        qs1 = qs1 - 0x10101010;
+        qs1 = dpct::vectorized_binary<sycl::char4>(qs1, 0x10101010, dpct::sub_sat()); // subtract 16
+        //qs1 = qs1 - 0x10101010;
         x_ql[i * (2*WARP_SIZE + 1) + 2*k+1] = qs1;
     }
 
@@ -2905,11 +2900,9 @@ load_tiles_q3_K(const void *__restrict__ vx, int *__restrict__ x_ql,
         const int shift_high = 2 * ksc;
         const int sc_high = ((get_int_from_uint8(bxi->scales, ksc_high) >> shift_high) << 4) & 0x30303030;
 
-        /*
-        DPCT1007:70: Migration of __vsubss4 is not supported.
-        */
-        //const int sc = __vsubss4(sc_low | sc_high, 0x20202020);
-        const int sc = (sc_low | sc_high) - 0x20202020;
+        
+        const int sc = dpct::vectorized_binary<sycl::char4>(sc_low | sc_high, 0x20202020, dpct::sub_sat());
+        //const int sc = (sc_low | sc_high) - 0x20202020;
         x_sc[i * (WARP_SIZE/4) + i / 4 + k % (WARP_SIZE/4)] = sc;
     }
 }
@@ -2938,11 +2931,8 @@ static __dpct_inline__ float vec_dot_q3_K_q8_1_mul_mat(
         const int vh = x_qh[i * (WARP_SIZE/2) + i/2 + kbx * (QI3_K/2) + (ky+l)%8] >> ((ky+l) / 8);
         const int vlh = (vh << 2) & 0x04040404;
 
-        /*
-        DPCT1007:71: Migration of __vsubss4 is not supported.
-        */
-        //v[l] = __vsubss4(vll, vlh);
-        v[l] = vll - vlh;
+        v[l] = dpct::vectorized_binary<sycl::char4>(vll, vlh, dpct::sub_sat());
+        //v[l] = vll - vlh;
     }
 
     const int index_y = j * WARP_SIZE + (k*QR3_K) % WARP_SIZE;
@@ -3407,16 +3397,10 @@ load_tiles_q6_K(const void *__restrict__ vx, int *__restrict__ x_ql,
         const int kq0 = ky - ky % QI6_K + k % (QI6_K/2) + 0;
         const int kq1 = ky - ky % QI6_K + k % (QI6_K/2) + (QI6_K/2);
 
-        /*
-        DPCT1007:72: Migration of __vsubss4 is not supported.
-        */
-        //x_ql[i * (2 * WARP_SIZE + 1) + kq0] = __vsubss4(ql0 | qh0, 0x20202020);
-        x_ql[i * (2 * WARP_SIZE + 1) + kq0] = (ql0 | qh0) -  0x20202020;
-        /*
-        DPCT1007:73: Migration of __vsubss4 is not supported.
-        */
-        //x_ql[i * (2 * WARP_SIZE + 1) + kq1] = __vsubss4(ql1 | qh1, 0x20202020);
-        x_ql[i * (2 * WARP_SIZE + 1) + kq1] = (ql1 | qh1) - 0x20202020;
+        x_ql[i * (2 * WARP_SIZE + 1) + kq0] = dpct::vectorized_binary<sycl::char4>(ql0 | qh0, 0x20202020, dpct::sub_sat());
+        //x_ql[i * (2 * WARP_SIZE + 1) + kq0] = (ql0 | qh0) -  0x20202020;
+        x_ql[i * (2 * WARP_SIZE + 1) + kq1] = dpct::vectorized_binary<sycl::char4>(ql1 | qh1, 0x20202020, dpct::sub_sat());
+        //x_ql[i * (2 * WARP_SIZE + 1) + kq1] = (ql1 | qh1) - 0x20202020;
     }
 
     const int blocks_per_tile_x_row = WARP_SIZE / QI6_K; // == 1 if QK_K == 256
