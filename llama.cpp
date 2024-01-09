@@ -13,7 +13,7 @@
 #elif defined(GGML_USE_CLBLAST)
 #  include "ggml-opencl.h"
 #elif defined(GGML_USE_SYCL)
-#  include "ggml-sycl.hpp"
+#  include "ggml-sycl.h"
 #endif
 
 #ifdef GGML_USE_METAL
