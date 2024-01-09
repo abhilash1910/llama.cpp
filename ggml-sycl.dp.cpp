@@ -875,7 +875,7 @@ static void dequantize_mul_mat_vec_q2_k(const void * __restrict__ vx, const floa
         uaux[0] = s[0] & 0x0f0f0f0f;
         uaux[1] = (s[0] >> 4) & 0x0f0f0f0f;
 
-        const float2 dall = __half22float2(x[i].dm);
+        const float2 dall = (x[i].dm).convert<float, sycl::rounding_mode::automatic>();
 
         float sum1 = 0, sum2 = 0;
         for (int l = 0; l < K_QUANTS_PER_ITERATION; ++l) {
@@ -1570,7 +1570,7 @@ static __dpct_inline__ float vec_dot_q4_0_q8_1_impl(const int *v, const int *u,
         sumi = __dp4a(vi1, u[2*i+1], sumi);
     }
 
-    const float2 ds8f = __half22float2(ds8);
+    const float2 ds8f = (ds8).convert<float, sycl::rounding_mode::automatic>();
 
     // second part effectively subtracts 8 from each quant value
     return d4 * (sumi * ds8f.x - (8*vdr/QI4_0) * ds8f.y);
@@ -1603,12 +1603,12 @@ static __dpct_inline__ float vec_dot_q4_1_q8_1_impl(const int *v, const int *u,
     }
 
 #ifdef GGML_CUDA_F16
-    const float2 tmp = __half22float2(__hmul2(dm4, ds8));
+    const float2 tmp = (sycl::ext::intel::math::hmul(dm4, ds8)).convert<float, sycl::rounding_mode::automatic>();
     const float d4d8 = tmp.x;
     const float m4s8 = tmp.y;
 #else
-    const float2 dm4f = __half22float2(dm4);
-    const float2 ds8f = __half22float2(ds8);
+    const float2 dm4f = (dm4).convert<float, sycl::rounding_mode::automatic>();
+    const float2 ds8f = (ds8).convert<float, sycl::rounding_mode::automatic>();
     const float d4d8 = dm4f.x * ds8f.x;
     const float m4s8 = dm4f.y * ds8f.y;
 #endif // GGML_CUDA_F16
@@ -1650,7 +1650,7 @@ vec_dot_q5_0_q8_1_impl(const int *vl, const int *vh, const int *u,
         sumi = __dp4a(vi1, u[2*i+1], sumi); // SIMD dot product of quantized values
     }
 
-    const float2 ds8f = __half22float2(ds8);
+    const float2 ds8f = (ds8).convert<float, sycl::rounding_mode::automatic>();
 
     // second part effectively subtracts 16 from each quant value
     return d5 * (sumi * ds8f.x - (16*vdr/QI5_0) * ds8f.y);
@@ -1690,12 +1690,12 @@ vec_dot_q5_1_q8_1_impl(const int *vl, const int *vh, const int *u,
     }
 
 #ifdef GGML_CUDA_F16
-    const float2 tmp = __half22float2(__hmul2(dm5, ds8));
+    const float2 tmp = (sycl::ext::intel::math::hmul(dm5, ds8)).convert<float, sycl::rounding_mode::automatic>();
     const float d5d8 = tmp.x;
     const float m5s8 = tmp.y;
 #else
-    const float2 dm5f = __half22float2(dm5);
-    const float2 ds8f = __half22float2(ds8);
+    const float2 dm5f = (dm5).convert<float, sycl::rounding_mode::automatic>();
+    const float2 ds8f = (ds8).convert<float, sycl::rounding_mode::automatic>();
     const float d5d8 = dm5f.x * ds8f.x;
     const float m5s8 = dm5f.y * ds8f.y;
 #endif // GGML_CUDA_F16
@@ -1750,12 +1750,12 @@ static __dpct_inline__ float vec_dot_q8_1_q8_1_impl(const int *v, const int *u,
     }
 
 #ifdef GGML_CUDA_F16
-    const float2 tmp = __half22float2(__hmul2(dm8, ds8));
+    const float2 tmp = (sycl::ext::intel::math::hmul(dm8, ds8)).convert<float, sycl::rounding_mode::automatic>();
     const float d8d8 = tmp.x;
     const float m8s8 = tmp.y;
 #else
-    const float2 dm8f = __half22float2(dm8);
-    const float2 ds8f = __half22float2(ds8);
+    const float2 dm8f = (dm8).convert<float, sycl::rounding_mode::automatic>();
+    const float2 ds8f = (ds8).convert<float, sycl::rounding_mode::automatic>();
     const float d8d8 = dm8f.x * ds8f.x;
     const float m8s8 = dm8f.y * ds8f.y;
 #endif // GGML_CUDA_F16
@@ -1796,7 +1796,7 @@ static __dpct_inline__ float vec_dot_q2_K_q8_1_impl_mmvq(
         sumf_m += d8[i] * __dp4a(m, u[i], 0); // multiply constant q2_K part with sum of q8_1 values
     }
 
-    const float2 dm2f = __half22float2(dm2);
+    const float2 dm2f = (dm2).convert<float, sycl::rounding_mode::automatic>();
 
     return dm2f.x*sumf_d - dm2f.y*sumf_m;
 #else
@@ -1836,7 +1836,7 @@ vec_dot_q2_K_q8_1_impl_mmq(const int *__restrict__ v, const int *__restrict__ u,
         sumi_d += sumi_d_sc * (sc & 0xF);
     }
 
-    const float2 dm2f = __half22float2(dm2);
+    const float2 dm2f = (dm2).convert<float, sycl::rounding_mode::automatic>();
 
     return d8 * (dm2f.x*sumi_d - dm2f.y*sumi_m);
 #else
@@ -1942,7 +1942,7 @@ static __dpct_inline__ float vec_dot_q4_K_q8_1_impl_vmmq(
         sumf_m += d8[i] * (dot2 * m[i]);  // multiply constant part of q4_K with sum of q8_1 values
     }
 
-    const float2 dm4f = __half22float2(dm4);
+    const float2 dm4f = (dm4).convert<float, sycl::rounding_mode::automatic>();
 
     return dm4f.x*sumf_d - dm4f.y*sumf_m;
 
@@ -1972,13 +1972,13 @@ static __dpct_inline__ float vec_dot_q4_K_q8_1_impl_mmq(
             sumi_d = __dp4a((v[j] >> (4*i)) & 0x0F0F0F0F, u[i*QI8_1 + j], sumi_d); // SIMD dot product
         }
 
-        const float2 ds8f = __half22float2(ds8[i]);
+        const float2 ds8f = (ds8[i]).convert<float, sycl::rounding_mode::automatic>();
 
         sumf_d += ds8f.x * (sc[i] * sumi_d);
         sumf_m += ds8f.y *   m[i]; // sum of q8_1 block * q4_K min val
     }
 
-    const float2 dm4f = __half22float2(dm4);
+    const float2 dm4f = (dm4).convert<float, sycl::rounding_mode::automatic>();
 
     return dm4f.x*sumf_d - dm4f.y*sumf_m;
 
@@ -2022,7 +2022,7 @@ static __dpct_inline__ float vec_dot_q5_K_q8_1_impl_vmmq(
 
     }
 
-    const float2 dm5f = __half22float2(dm5);
+    const float2 dm5f = (dm5).convert<float, sycl::rounding_mode::automatic>();
 
     return dm5f.x*sumf_d - dm5f.y*sumf_m;
 
@@ -2052,13 +2052,13 @@ static __dpct_inline__ float vec_dot_q5_K_q8_1_impl_mmq(
             sumi_d = __dp4a(v[i*QI8_1 + j], u[i*QI8_1 + j], sumi_d); // SIMD dot product
         }
 
-        const float2 ds8f = __half22float2(ds8[i]);
+        const float2 ds8f = (ds8[i]).convert<float, sycl::rounding_mode::automatic>();
 
         sumf_d += ds8f.x * (sc[i] * sumi_d);
         sumf_m += ds8f.y *   m[i]; // sum of q8_1 block * q4_K min val
     }
 
-    const float2 dm4f = __half22float2(dm4);
+    const float2 dm4f = (dm4).convert<float, sycl::rounding_mode::automatic>();
 
     return dm4f.x*sumf_d - dm4f.y*sumf_m;
 
