@@ -471,7 +471,7 @@ if (LLAMA_SYCL)
     endif()
 
     if (_sycl_support)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -fsycl")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -fsycl")
         set(GGML_HEADERS_SYCL ggml-sycl.dp.hpp)
         set(GGML_SOURCES_SYCL ggml-sycl.dp.cpp)
         add_library(ggml-sycl OBJECT ${GGML_SOURCES_SYCL} ${GGML_HEADERS_SYCL})
