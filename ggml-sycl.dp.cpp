@@ -4337,7 +4337,6 @@ static void diag_mask_inf_f32(const float * x, float * dst, const int ncols, con
     dst[i] = x[i] - (col > n_past + row % rows_per_channel) * INT_MAX; // equivalent within rounding error but slightly faster on GPU
 }
 
-// the CUDA soft max implementation differs from the CPU implementation
 // instead of doubles floats are used
 // values are also not normalized to the maximum value by subtracting it in the exponential function
 // theoretically these changes could cause problems with rounding error and arithmetic overflow but for LLaMa it seems to be fine
@@ -6157,7 +6156,7 @@ catch (sycl::exception const &exc) {
   std::exit(1);
 }
 
-void ggml_cuda_set_tensor_split(const float * tensor_split) {
+void ggml_sycl_set_tensor_split(const float * tensor_split) {
     if (tensor_split == nullptr) {
         return;
     }
@@ -6181,7 +6180,7 @@ void ggml_cuda_set_tensor_split(const float * tensor_split) {
     }
 }
 
-void *ggml_cuda_host_malloc(size_t size) try {
+void *ggml_sycl_host_malloc(size_t size) try {
     if (getenv("GGML_CUDA_NO_PINNED") != nullptr) {
         return nullptr;
     }
@@ -6236,7 +6235,7 @@ catch (sycl::exception const &exc) {
   std::exit(1);
 }
 
-void ggml_cuda_host_free(void *ptr) try {
+void ggml_sycl_host_free(void *ptr) try {
     /*
     DPCT1003:92: Migrated API does not return error code. (*, 0) is inserted.
     You may need to rewrite this code.
@@ -7444,7 +7443,7 @@ void ggml_cuda_add(const ggml_tensor * src0, const ggml_tensor * src1, ggml_tens
     ggml_cuda_op(src0, src1, dst, ggml_cuda_op_add, false, true);
 }
 
-void ggml_cuda_mul(const ggml_tensor * src0, const ggml_tensor * src1, ggml_tensor * dst) {
+void ggml_sycl_mul(const ggml_tensor * src0, const ggml_tensor * src1, ggml_tensor * dst) {
     GGML_ASSERT(src0->type == GGML_TYPE_F32 && src1->type == GGML_TYPE_F32 && dst->type == GGML_TYPE_F32);
     ggml_cuda_op(src0, src1, dst, ggml_cuda_op_mul, true, false); // TODO ggml_cuda_op needs modification for flatten
 }
@@ -7469,7 +7468,7 @@ void ggml_cuda_rms_norm(const ggml_tensor * src0, const ggml_tensor * src1, ggml
     ggml_cuda_op(src0, src1, dst, ggml_cuda_op_rms_norm, true, true);
 }
 
-bool ggml_cuda_can_mul_mat(const struct ggml_tensor * src0, const struct ggml_tensor * src1, struct ggml_tensor * dst) {
+bool ggml_sycl_can_mul_mat(const struct ggml_tensor * src0, const struct ggml_tensor * src1, struct ggml_tensor * dst) {
     const int64_t ne10 = src1->ne[0];
 
     const int64_t ne0 = dst->ne[0];
@@ -7486,7 +7485,7 @@ bool ggml_cuda_can_mul_mat(const struct ggml_tensor * src0, const struct ggml_te
     return false;
 }
 
-void ggml_cuda_mul_mat_vec_p021(const ggml_tensor *src0,
+void ggml_sycl_mul_mat_vec_p021(const ggml_tensor *src0,
                                 const ggml_tensor *src1, ggml_tensor *dst) try {
     GGML_ASSERT(ggml_is_permuted(src0) && ggml_is_permuted(src1));
     GGML_ASSERT(src0->backend != GGML_BACKEND_GPU_SPLIT);
@@ -7530,7 +7529,7 @@ catch (sycl::exception const &exc) {
   std::exit(1);
 }
 
-void ggml_cuda_mul_mat_vec_nc(const ggml_tensor *src0, const ggml_tensor *src1,
+void ggml_sycl_mul_mat_vec_nc(const ggml_tensor *src0, const ggml_tensor *src1,
                               ggml_tensor *dst) try {
     GGML_ASSERT(!ggml_is_contiguous(src0) && ggml_is_contiguous(src1));
     GGML_ASSERT(!ggml_is_permuted(src0));
@@ -7579,14 +7578,14 @@ catch (sycl::exception const &exc) {
   std::exit(1);
 }
 
-void ggml_cuda_mul_mat(const ggml_tensor * src0, const ggml_tensor * src1, ggml_tensor * dst) {
+void ggml_sycl_mul_mat(const ggml_tensor * src0, const ggml_tensor * src1, ggml_tensor * dst) {
     bool all_on_device = (src0->backend == GGML_BACKEND_GPU || src0->backend == GGML_BACKEND_GPU_SPLIT) &&
         src1->backend == GGML_BACKEND_GPU && dst->backend == GGML_BACKEND_GPU;
 
     if (all_on_device && ggml_is_permuted(src0) && ggml_is_permuted(src1) && src1->ne[1] == 1) {
-        ggml_cuda_mul_mat_vec_p021(src0, src1, dst);
+        ggml_sycl_mul_mat_vec_p021(src0, src1, dst);
     } else if (all_on_device && !ggml_is_contiguous(src0) && ggml_is_contiguous(src1) && src1->ne[1] == 1) {
-        ggml_cuda_mul_mat_vec_nc(src0, src1, dst);
+        ggml_sycl_mul_mat_vec_nc(src0, src1, dst);
     }else if (src0->type == GGML_TYPE_F32) {
         ggml_cuda_op(src0, src1, dst, ggml_cuda_op_mul_mat_cublas, true, false);
     } else if (ggml_is_quantized(src0->type) || src0->type == GGML_TYPE_F16) {
@@ -7824,7 +7823,7 @@ catch (sycl::exception const &exc) {
   std::exit(1);
 }
 
-void ggml_cuda_free_data(struct ggml_tensor *tensor) try {
+void ggml_sycl_free_data(struct ggml_tensor *tensor) try {
     if (!tensor || (tensor->backend != GGML_BACKEND_GPU && tensor->backend != GGML_BACKEND_GPU_SPLIT) ) {
         return;
     }
@@ -7895,7 +7894,7 @@ static struct ggml_tensor_extra_gpu * ggml_cuda_alloc_temp_tensor_extra() {
     return extra;
 }
 
-void ggml_cuda_assign_buffers_impl(struct ggml_tensor *tensor, bool scratch,
+void ggml_sycl_assign_buffers_impl(struct ggml_tensor *tensor, bool scratch,
                                    bool force_inplace) try {
     if (scratch && g_scratch_size == 0) {
         return;
@@ -7905,11 +7904,11 @@ void ggml_cuda_assign_buffers_impl(struct ggml_tensor *tensor, bool scratch,
     if (tensor->src[0] != nullptr && tensor->src[0]->backend == GGML_BACKEND_CPU) {
         const ggml_op src0_op = tensor->src[0]->op;
         if (src0_op == GGML_OP_RESHAPE || src0_op == GGML_OP_TRANSPOSE || src0_op == GGML_OP_VIEW || src0_op == GGML_OP_PERMUTE) {
-            ggml_cuda_assign_buffers_impl(tensor->src[0], scratch, force_inplace);
+            ggml_sycl_assign_buffers_impl(tensor->src[0], scratch, force_inplace);
         }
     }
     if (tensor->op == GGML_OP_CPY && tensor->src[1]->backend == GGML_BACKEND_CPU) {
-        ggml_cuda_assign_buffers_impl(tensor->src[1], scratch, force_inplace);
+        ggml_sycl_assign_buffers_impl(tensor->src[1], scratch, force_inplace);
     }
 
     tensor->backend = GGML_BACKEND_GPU;
@@ -7994,19 +7993,19 @@ catch (sycl::exception const &exc) {
   std::exit(1);
 }
 
-void ggml_cuda_assign_buffers(struct ggml_tensor * tensor) {
-    ggml_cuda_assign_buffers_impl(tensor, true, false);
+void ggml_sycl_assign_buffers(struct ggml_tensor * tensor) {
+    ggml_sycl_assign_buffers_impl(tensor, true, false);
 }
 
-void ggml_cuda_assign_buffers_no_scratch(struct ggml_tensor * tensor) {
-    ggml_cuda_assign_buffers_impl(tensor, false, false);
+void ggml_sycl_assign_buffers_no_scratch(struct ggml_tensor * tensor) {
+    ggml_sycl_assign_buffers_impl(tensor, false, false);
 }
 
-void ggml_cuda_assign_buffers_force_inplace(struct ggml_tensor * tensor) {
-    ggml_cuda_assign_buffers_impl(tensor, false, true);
+void ggml_sycl_assign_buffers_force_inplace(struct ggml_tensor * tensor) {
+    ggml_sycl_assign_buffers_impl(tensor, false, true);
 }
 
-void ggml_cuda_set_main_device(int main_device) try {
+void ggml_sycl_set_main_device(int main_device) try {
     if (main_device >= g_device_count) {
         fprintf(stderr, "warning: cannot set main_device=%d because there are only %d devices. Using device %d instead.\n",
                 main_device, g_device_count, g_main_device);
@@ -8033,15 +8032,15 @@ catch (sycl::exception const &exc) {
   std::exit(1);
 }
 
-void ggml_cuda_set_mul_mat_q(bool mul_mat_q) {
+void ggml_sycl_set_mul_mat_qscratch_size(bool mul_mat_q) {
     g_mul_mat_q = mul_mat_q;
 }
 
-void ggml_cuda_set_scratch_size(size_t scratch_size) {
+void ggml_sycl_set_scratch_size(size_t scratch_size) {
     g_scratch_size = scratch_size;
 }
 
-void ggml_cuda_free_scratch() try {
+void ggml_sycl_free_scratch() try {
     if (g_scratch_buffer == nullptr) {
         return;
     }
@@ -8059,7 +8058,7 @@ catch (sycl::exception const &exc) {
   std::exit(1);
 }
 
-bool ggml_cuda_compute_forward(struct ggml_compute_params * params, struct ggml_tensor * tensor){
+bool ggml_sycl_compute_forward(struct ggml_compute_params * params, struct ggml_tensor * tensor){
     ggml_cuda_func_t func;
     const bool any_on_device = tensor->backend == GGML_BACKEND_GPU
         || (tensor->src[0] != nullptr && (tensor->src[0]->backend == GGML_BACKEND_GPU || tensor->src[0]->backend == GGML_BACKEND_GPU_SPLIT))
@@ -8082,7 +8081,7 @@ bool ggml_cuda_compute_forward(struct ggml_compute_params * params, struct ggml_
             if (!any_on_device) {
                 return false;
             }
-            func = ggml_cuda_mul;
+            func = ggml_sycl_mul;
             break;
         case GGML_OP_UNARY:
             switch (ggml_get_unary_op(tensor)) {
@@ -8114,10 +8113,10 @@ bool ggml_cuda_compute_forward(struct ggml_compute_params * params, struct ggml_
             func = ggml_cuda_rms_norm;
             break;
         case GGML_OP_MUL_MAT:
-            if (!any_on_device && !ggml_cuda_can_mul_mat(tensor->src[0], tensor->src[1], tensor)) {
+            if (!any_on_device && !ggml_sycl_can_mul_mat(tensor->src[0], tensor->src[1], tensor)) {
                 return false;
             }
-            func = ggml_cuda_mul_mat;
+            func = ggml_sycl_mul_mat;
             break;
         case GGML_OP_SCALE:
             if (!any_on_device) {
