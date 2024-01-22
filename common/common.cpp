@@ -621,7 +621,7 @@ bool gpt_params_parse_ex(int argc, char ** argv, gpt_params & params) {
                 invalid_param = true;
                 break;
             }
-#ifndef GGML_USE_CUBLAS || defined(GGML_USE_SYCL)
+#if defined(GGML_USE_CUBLAS) || defined(GGML_USE_SYCL)
             fprintf(stderr, "warning: llama.cpp was compiled without cuBLAS or SYCL. Setting the split mode has no effect.\n");
 #endif // GGML_USE_CUBLAS || GGML_USE_SYCL
         } else if (arg == "--tensor-split" || arg == "-ts") {
@@ -1011,7 +1011,8 @@ void gpt_print_usage(int /*argc*/, char ** argv, const gpt_params & params) {
     printf("  -ts SPLIT --tensor-split SPLIT\n");
     printf("                        fraction of the model to offload to each GPU, comma-separated list of proportions, e.g. 3,1\n");
     printf("  -mg i, --main-gpu i   the GPU to use for scratch and small tensors\n");
-     printf("                        or for intermediate results and KV (with split-mode = row) (default: %d)\n", params.main_gpu);
+    printf("                        or for intermediate results and KV (with split-mode = row) (default: %d)\n", params.main_gpu);
+#endif // LLAMA_SUPPORTS_GPU_OFFLOAD
 #ifdef GGML_USE_CUBLAS
     printf("  -nommq, --no-mul-mat-q\n");
     printf("                        use " GGML_CUBLAS_NAME " instead of custom mul_mat_q " GGML_CUDA_NAME " kernels.\n");
