@@ -5610,7 +5610,7 @@ struct bin_bcast_sycl {
 
                 stream->parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                         k_bin_bcast<bin_op>(src0_dd, src1_dd, dst_dd, ne0, ne1,
                                             ne2, ne3, ne10, ne11, ne12, ne13,
                                             s1, s2, s3, s11, s12, s13,
@@ -6550,7 +6550,7 @@ static void ggml_mul_mat_q4_0_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]]{
                         mul_mat_q4_0<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -6585,7 +6585,7 @@ static void ggml_mul_mat_q4_0_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]]{
                         mul_mat_q4_0<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -6665,7 +6665,7 @@ static void ggml_mul_mat_q4_1_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]]{
                         mul_mat_q4_1<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -6700,7 +6700,7 @@ static void ggml_mul_mat_q4_1_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]]{
                         mul_mat_q4_1<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -6780,7 +6780,7 @@ static void ggml_mul_mat_q5_0_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                         mul_mat_q5_0<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -6815,7 +6815,7 @@ static void ggml_mul_mat_q5_0_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]]{
                         mul_mat_q5_0<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -6895,7 +6895,7 @@ static void ggml_mul_mat_q5_1_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                         mul_mat_q5_1<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -6930,7 +6930,7 @@ static void ggml_mul_mat_q5_1_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                         mul_mat_q5_1<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -7010,7 +7010,7 @@ static void ggml_mul_mat_q8_0_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                         mul_mat_q8_0<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -7045,7 +7045,7 @@ static void ggml_mul_mat_q8_0_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                         mul_mat_q8_0<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -7127,7 +7127,7 @@ static void ggml_mul_mat_q2_K_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                         mul_mat_q2_K<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -7165,7 +7165,7 @@ static void ggml_mul_mat_q2_K_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                         mul_mat_q2_K<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -7252,7 +7252,7 @@ static void ggml_mul_mat_q3_K_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                         mul_mat_q3_K<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -7293,7 +7293,7 @@ static void ggml_mul_mat_q3_K_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                         mul_mat_q3_K<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -7378,7 +7378,7 @@ static void ggml_mul_mat_q4_K_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]]{
                         mul_mat_q4_K<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -7416,7 +7416,7 @@ static void ggml_mul_mat_q4_K_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                         mul_mat_q4_K<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -7499,7 +7499,7 @@ static void ggml_mul_mat_q5_K_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                         mul_mat_q5_K<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -7537,7 +7537,7 @@ static void ggml_mul_mat_q5_K_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]]{
                         mul_mat_q5_K<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -7620,7 +7620,7 @@ static void ggml_mul_mat_q6_K_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                         mul_mat_q6_K<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -7658,7 +7658,7 @@ static void ggml_mul_mat_q6_K_q8_1_sycl(const void *vx, const void *vy,
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                    [=](sycl::nd_item<3> item_ct1) {
+                    [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]]{
                         mul_mat_q6_K<need_check>(
                             vx, vy, dst, ncols_x, nrows_x, ncols_y, nrows_y,
                             nrows_dst, item_ct1,
@@ -7898,7 +7898,7 @@ static void rope_sycl(const T *x, T *dst, int ncols, int nrows,
 
         stream->parallel_for(
             sycl::nd_range<3>(block_nums * block_dims, block_dims),
-            [=](sycl::nd_item<3> item_ct1) {
+            [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                 rope<T, false>(x, dst, ncols, pos, freq_scale, p_delta_rows,
                                freq_base, ext_factor, attn_factor, corr_dims,
                                item_ct1);
@@ -7914,7 +7914,7 @@ static void rope_sycl(const T *x, T *dst, int ncols, int nrows,
 
         stream->parallel_for(
             sycl::nd_range<3>(block_nums * block_dims, block_dims),
-            [=](sycl::nd_item<3> item_ct1) {
+            [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                 rope<T, true>(x, dst, ncols, pos, freq_scale, p_delta_rows,
                               freq_base, ext_factor, attn_factor, corr_dims,
                               item_ct1);
@@ -7947,7 +7947,7 @@ static void rope_neox_sycl(const T *x, T *dst, int ncols, int n_dims, int nrows,
 
         stream->parallel_for(
             sycl::nd_range<3>(block_nums * block_dims, block_dims),
-            [=](sycl::nd_item<3> item_ct1) {
+            [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]]{
                 rope_neox<T, false>(x, dst, ncols, n_dims, pos, freq_scale,
                                     p_delta_rows, ext_factor, attn_factor,
                                     corr_dims, theta_scale, inv_ndims,
@@ -7964,7 +7964,7 @@ static void rope_neox_sycl(const T *x, T *dst, int ncols, int n_dims, int nrows,
 
         stream->parallel_for(
             sycl::nd_range<3>(block_nums * block_dims, block_dims),
-            [=](sycl::nd_item<3> item_ct1) {
+            [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                 rope_neox<T, true>(x, dst, ncols, n_dims, pos, freq_scale,
                                    p_delta_rows, ext_factor, attn_factor,
                                    corr_dims, theta_scale, inv_ndims, item_ct1);
@@ -7981,7 +7981,7 @@ static void rope_glm_f32_sycl(const float *x, float *dst, int ncols, int nrows,
     const int num_blocks_x = (ncols + SYCL_ROPE_BLOCK_SIZE - 1) / SYCL_ROPE_BLOCK_SIZE;
     const sycl::range<3> block_nums(1, nrows, num_blocks_x);
     stream->parallel_for(sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                         [=](sycl::nd_item<3> item_ct1) {
+                         [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]]{
                              rope_glm_f32(x, dst, ncols, pos, freq_scale,
                                           p_delta_rows, freq_base, n_ctx,
                                           item_ct1);
@@ -7996,7 +7996,7 @@ static void alibi_f32_sycl(const float *x, float *dst, const int ncols,
     const int num_blocks_x = (ncols + SYCL_ALIBI_BLOCK_SIZE - 1) / (SYCL_ALIBI_BLOCK_SIZE);
     const sycl::range<3> block_nums(1, nrows, num_blocks_x);
     stream->parallel_for(sycl::nd_range<3>(block_nums * block_dims, block_dims),
-                         [=](sycl::nd_item<3> item_ct1) {
+                         [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]]{
                              alibi_f32(x, dst, ncols, k_rows,
                                        n_heads_log2_floor, m0, m1, item_ct1);
                          });
@@ -8029,7 +8029,7 @@ static void argsort_f32_i32_sycl(const float *x, int *dst, const int ncols,
         */
         stream->parallel_for(
             sycl::nd_range<3>(block_nums * block_dims, block_dims),
-            [=](sycl::nd_item<3> item_ct1) {
+            [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                 k_argsort_f32_i32<GGML_SORT_ASC>(x, dst, ncols, item_ct1);
             });
     } else if (order == GGML_SORT_DESC) {
@@ -8040,7 +8040,7 @@ static void argsort_f32_i32_sycl(const float *x, int *dst, const int ncols,
         */
         stream->parallel_for(
             sycl::nd_range<3>(block_nums * block_dims, block_dims),
-            [=](sycl::nd_item<3> item_ct1) {
+            [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                 k_argsort_f32_i32<GGML_SORT_DESC>(x, dst, ncols, item_ct1);
             });
     } else {
@@ -10518,7 +10518,7 @@ static void ggml_sycl_mul_mat_mat_batched_sycl(const ggml_tensor *src0,
                 void **ptrs_dst_get_ct4 = ptrs_dst.get();
 
                 cgh.parallel_for(sycl::nd_range<3>(block_dims, block_dims),
-                                 [=](sycl::nd_item<3> item_ct1) {
+                                 [=](sycl::nd_item<3> item_ct1)[[intel::reqd_sub_group_size(32)]] {
                                      k_compute_batched_ptrs(
                                          src0_as_f16, src1_as_f16_get_ct1,
                                          dst_t, ptrs_src_get_ct3,
