@@ -2700,7 +2700,7 @@ struct llama_model_loader {
 #if defined(GGML_USE_CUBLAS) && !defined(LLAMA_GGML_BACKEND_CUDA_TEST)
                 ggml_cuda_transform_tensor(data, cur);
 #elif defined(GGML_USE_SYCL) && !defined(LLAMA_GGML_BACKEND_SYCL_TEST)
-		            ggml_sycl_transform_tensor(data, cur);
+                ggml_sycl_transform_tensor(data, cur);
 #elif defined(GGML_USE_CLBLAST)
                 GGML_ASSERT(cur->backend == GGML_BACKEND_GPU);
                 ggml_cl_transform_tensor(data, cur);
