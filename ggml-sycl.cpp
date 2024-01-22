@@ -412,7 +412,7 @@ static size_t g_scratch_offset = 0;
 
 static dpct::queue_ptr g_sycl_handles[GGML_SYCL_MAX_DEVICES] = {nullptr};
 
-int get_main_device(){
+int get_main_device(void){
     return g_main_device;
 }
 
@@ -11586,7 +11586,7 @@ bool ggml_sycl_compute_forward(struct ggml_compute_params * params, struct ggml_
     return true;
 }
 
-int ggml_sycl_get_device_count() try {
+int ggml_sycl_get_device_count(void) try {
     int device_count;
     if (CHECK_TRY_ERROR(device_count =
                              dpct::dev_mgr::instance().device_count()) != 0) {

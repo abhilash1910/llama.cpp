@@ -652,14 +652,14 @@ bool gpt_params_parse_ex(int argc, char ** argv, gpt_params & params) {
 
 #else
             fprintf(stderr, "warning: llama.cpp was compiled without cuBLAS or SYCL. It is not possible to set a tensor split.\n");
-#endif // GGML_USE_CUBLAS
+#endif // GGML_USE_CUBLAS || GGML_USE_SYCL
         } else if (arg == "--no-mul-mat-q" || arg == "-nommq") {
 #if defined(GGML_USE_CUBLAS) || defined(GGML_USE_SYCL)
             params.mul_mat_q = false;
 #else
             fprintf(stderr, "warning: llama.cpp was compiled without cuBLAS or SYCL. Disabling mul_mat_q kernels has no effect.\n");
 
-#endif // GGML_USE_CUBLAS
+#endif // GGML_USE_CUBLAS || GGML_USE_SYCL
         } else if (arg == "--no-mmap") {
             params.use_mmap = false;
         } else if (arg == "--numa") {
