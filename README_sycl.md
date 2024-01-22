@@ -126,8 +126,9 @@ cd build
 source /opt/intel/oneapi/setvars.sh
 
 #for FP16
-#cmake .. -DLLAMA_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DGGML_SYCL_F16=ON
+#cmake .. -DLLAMA_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DLLAMA_SYCL_F16=ON # faster for long-prompt inference
 
+#for FP32
 cmake .. -DLLAMA_SYCL=ON -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx
 
 #build example/main only
@@ -213,11 +214,10 @@ Using device **0** (Intel(R) Arc(TM) A770 Graphics) as main device
 
 |Name|Value|Function|
 |-|-|-|
-|LLAMA_SYCL|ON (mandatory)|Enable build with SYCL code path|
+|LLAMA_SYCL|ON (mandatory)|Enable build with SYCL code path. <br>For FP32/FP16, LLAMA_SYCL=ON is mandatory.|
+|LLAMA_SYCL_F16|ON (optional)|Enable FP16 build with SYCL code path. Faster for long-prompt inference. <br>For FP32, not set it.|
 |CMAKE_C_COMPILER|icx|Use icx compiler for SYCL code path|
 |CMAKE_CXX_COMPILER|icpx|use icpx for SYCL code path|
-|GGML_SYCL_F16|OFF (default) or ON|Enable FP16 in computing|
-
 
 #### Running
 

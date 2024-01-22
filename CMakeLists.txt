@@ -101,6 +101,7 @@ option(LLAMA_METAL_SHADER_DEBUG              "llama: compile Metal with -fno-fas
 option(LLAMA_MPI                             "llama: use MPI"                                   OFF)
 option(LLAMA_QKK_64                          "llama: use super-block size of 64 for k-quants"   OFF)
 option(LLAMA_SYCL                            "llama: use SYCL"                                  OFF)
+option(LLAMA_SYCL_F16                        "llama: use 16 bit floats for sycl calculations"   OFF)
 
 
 option(LLAMA_BUILD_TESTS                     "llama: build tests"    ${LLAMA_STANDALONE})
@@ -457,8 +458,10 @@ if (LLAMA_SYCL)
 
     find_package(IntelSYCL REQUIRED)
 
-    #add_compile_definitions(GGML_SYCL_F16)
     add_compile_definitions(GGML_USE_SYCL)
+    if (LLAMA_SYCL_F16)
+        add_compile_definitions(GGML_SYCL_F16)
+    endif()
 
     add_compile_options(-I./) #include DPCT 
     add_compile_options(-I/${SYCL_INCLUDE_DIR})
