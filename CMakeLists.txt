@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.13)  # for add_link_options
 project("llama.cpp" C CXX)
+include(CheckIncludeFileCXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -99,6 +100,7 @@ option(LLAMA_SYCL                            "llama: use SYCL"                  
 option(LLAMA_METAL_SHADER_DEBUG              "llama: compile Metal with -fno-fast-math"         OFF)
 option(LLAMA_MPI                             "llama: use MPI"                                   OFF)
 option(LLAMA_QKK_64                          "llama: use super-block size of 64 for k-quants"   OFF)
+option(LLAMA_SYCL                            "llama: use SYCL"                                  OFF)
 
 
 option(LLAMA_BUILD_TESTS                     "llama: build tests"    ${LLAMA_STANDALONE})
@@ -447,41 +449,29 @@ endif()
 
 
 if (LLAMA_SYCL)
-    set(ENABLE_AOT ats)
-    if (NOT ${CMAKE_C_COMPILER_ID} MATCHES "Clang")
-        message(WARNING "Only LLVM is supported for SYCL")
+    if ( NOT DEFINED ENV{ONEAPI_ROOT})
+	message(FATAL_ERROR "Not detect ENV {ONEAPI_ROOT}, please install oneAPI & source it, like: source /opt/intel/oneapi/setvars.sh")
     endif()
-    if (NOT ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-        message(WARNING "Only LLVM is supported for SYCL")
-    endif()
+    
+    #todo: AOT
 
-    find_package(SYCL REQUIRED)
-    find_package(IntelDPCPP REQUIRED)
+    find_package(IntelSYCL REQUIRED)
 
-    # Check SYCL support by the compiler
-    check_cxx_compiler_flag("-fsycl" _fsycl_option)
-    if (_fsycl_option)
-        CHECK_INCLUDE_FILE_CXX("sycl/sycl.hpp" _sycl_header "-fsycl")
-        if (NOT _sycl_header)
-            CHECK_INCLUDE_FILE_CXX("CL/sycl.hpp" _sycl_header_old "-fsycl")
-        endif()
-        if (_sycl_header OR _sycl_header_old)
-            set(_sycl_support TRUE)
-        endif()
-    endif()
+    #add_compile_definitions(GGML_SYCL_F16)
+    add_compile_definitions(GGML_USE_SYCL)
 
-    if (_sycl_support)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -fsycl")
-        set(GGML_HEADERS_SYCL ggml-sycl.dp.hpp)
-        set(GGML_SOURCES_SYCL ggml-sycl.dp.cpp)
-        add_library(ggml-sycl OBJECT ${GGML_SOURCES_SYCL} ${GGML_HEADERS_SYCL})
-        add_executable(${PROJECT_NAME} ${GGML_SOURCES_SYCL} ${GGML_HEADERS_SYCL})
-        target_link_libraries(ggml-sycl PRIVATE sycl)
-        target_compile_options(${PROJECT_NAME} PRIVATE ${CMAKE_CXX_FLAGS})
-        #add_sycl_to_target({})
-    else()
-        message(FATAL_ERROR "SYCL Support is not present")
-    endif()
+    add_compile_options(-I./) #include DPCT 
+    add_compile_options(-I/${SYCL_INCLUDE_DIR})
+    
+    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wno-narrowing")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsycl -L${MKLROOT}/lib")
+
+    set(GGML_HEADERS_SYCL ggml.h ggml-sycl.h)
+    set(GGML_SOURCES_SYCL ggml-sycl.cpp)
+
+    set(LLAMA_EXTRA_LIBS ${LLAMA_EXTRA_LIBS} sycl OpenCL mkl_core pthread m dl mkl_sycl_blas mkl_intel_ilp64 mkl_tbb_thread)
 endif()
 
 
@@ -808,6 +798,7 @@ add_library(ggml OBJECT
             ${GGML_SOURCES_METAL}  ${GGML_HEADERS_METAL}
             ${GGML_SOURCES_MPI}    ${GGML_HEADERS_MPI}
             ${GGML_SOURCES_EXTRA}  ${GGML_HEADERS_EXTRA}
+            ${GGML_SOURCES_SYCL}  ${GGML_HEADERS_SYCL}
             )
 
 target_include_directories(ggml PUBLIC . ${LLAMA_EXTRA_INCLUDES})
