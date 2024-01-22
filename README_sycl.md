@@ -20,7 +20,7 @@ SYCL is a higher-level programming model to improve programming productivity on 
 
 oneAPI is a specification that is open and standards-based, supporting multiple architecture types including but not limited to GPU, CPU, and FPGA. The spec has both direct programming and API-based programming paradigms.
 
-Intel uses the SYCL as direct programming language to support CPU, GPUs and FPGAs.
+Intel uses the SYCL as direct programming language to support CPU, GPUs, and FPGAs.
 
 To avoid to re-invent the wheel, this code refer other code paths in llama.cpp (like OpenBLAS, cuBLAS, CLBlast). We use a open-source tool [SYCLomatic](https://github.com/oneapi-src/SYCLomatic) (Commercial release [Intel® DPC++ Compatibility Tool](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compatibility-tool.html)) migrate to SYCL.
 
