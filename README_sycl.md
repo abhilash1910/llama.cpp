@@ -114,6 +114,12 @@ Output (example):
 
 2. Build locally:
 
+Note:
+
+- By default, it will build for all binary files. It will take more time. To reduce the time, we recommend to build for **example/main** only.
+
+- By default, mmap is used to read model file. In some cases, it leads to the hang issue. Recommend to use build parameter **--no-mmap** to disable mmap() to skip this issue.
+
 ```
 mkdir -p build
 cd build
@@ -135,7 +141,7 @@ cmake --build . --config Release -v
 or
 
 ```
-./sycl_build.sh
+./examples/sycl/build.sh
 ```
 
 ### Run
@@ -190,7 +196,7 @@ GGML_SYCL_DEVICE=0 && ./build/bin/main -m models/llama-2-7b.Q4_0.gguf -p "Buildi
 or run by script:
 
 ```
-./examples/sycl_run_llama2.sh
+./examples/sycl/run_llama2.sh
 ```
 
 5. Check the device ID in output
