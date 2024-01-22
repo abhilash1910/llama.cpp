@@ -11647,6 +11647,12 @@ struct ggml_backend_buffer_context_sycl {
     }
 };
 
+static const char * ggml_backend_sycl_buffer_get_name(ggml_backend_buffer_t buffer) {
+    return GGML_SYCL_NAME;
+
+    UNUSED(buffer);
+}
+
 static void
 ggml_backend_sycl_buffer_free_buffer(ggml_backend_buffer_t buffer) try {
     ggml_backend_buffer_context_sycl * ctx = (ggml_backend_buffer_context_sycl *)buffer->context;
@@ -11783,14 +11789,15 @@ catch (sycl::exception const &exc) {
 }
 
 static struct ggml_backend_buffer_i sycl_backend_buffer_interface = {
+    /* .get_name        = */ ggml_backend_sycl_buffer_get_name,
     /* .free_buffer     = */ ggml_backend_sycl_buffer_free_buffer,
     /* .get_base        = */ ggml_backend_sycl_buffer_get_base,
     /* .init_tensor     = */ ggml_backend_sycl_buffer_init_tensor,
     /* .set_tensor      = */ ggml_backend_sycl_buffer_set_tensor,
     /* .get_tensor      = */ ggml_backend_sycl_buffer_get_tensor,
     /* .cpy_tensor_from = */ NULL,
-    /* .cpy_tensor_to   = */ NULL,
     /* .clear           = */ ggml_backend_sycl_buffer_clear,
+    /* .reset           = */ NULL,
 };
 
 // sycl buffer type
