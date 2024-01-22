@@ -22,7 +22,7 @@ oneAPI is a specification that is open and standards-based, supporting multiple 
 
 Intel uses the SYCL as direct programming language to support CPU, GPUs, and FPGAs.
 
-To avoid to re-invent the wheel, this code refer other code paths in llama.cpp (like OpenBLAS, cuBLAS, CLBlast). We use a open-source tool [SYCLomatic](https://github.com/oneapi-src/SYCLomatic) (Commercial release [Intel® DPC++ Compatibility Tool](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compatibility-tool.html)) migrate to SYCL.
+To avoid re-inventing the wheel, this code builds on other code paths in llama.cpp (like OpenBLAS, cuBLAS, CLBlast). To do this use an open-source code translator [SYCLomatic](https://github.com/oneapi-src/SYCLomatic) (Commercial release [Intel® DPC++ Compatibility Tool](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compatibility-tool.html)) to migrate from CUDA to SYCL.
 
 The llama.cpp for SYCL is used to support Intel GPUs.
 
