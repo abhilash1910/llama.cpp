@@ -43,6 +43,7 @@ models-mnt
 /embedding
 /gguf
 /gguf-llama-simple
+/imatrix
 /infill
 /libllama.so
 /llama-bench
@@ -104,3 +105,4 @@ poetry.toml
 /tests/test-tokenizer-1-bpe
 /tests/test-rope
 /tests/test-backend-ops
+/tests/test-autorelease
