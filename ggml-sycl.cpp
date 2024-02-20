@@ -14535,7 +14535,7 @@ struct ggml_backend_sycl_buffer_context {
 
 GGML_CALL static const char * ggml_backend_sycl_buffer_get_name(ggml_backend_buffer_t buffer) {
     ggml_backend_sycl_buffer_context * ctx = (ggml_backend_sycl_buffer_context *)buffer->context;
-    return ctx->name.c_str();
+    return ctx->name;
 }
 
 GGML_CALL static bool ggml_backend_buffer_is_sycl(ggml_backend_buffer_t buffer) {
