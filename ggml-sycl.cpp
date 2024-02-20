@@ -8301,7 +8301,7 @@ static void get_rows_sycl(const ggml_tensor *src0, const ggml_tensor *src1,
                           const int32_t *src1_dd, float *dst_dd,
                           dpct::queue_ptr stream) {
 
-    GGML_TENSOR_BINARY_OP_LOCALS
+    GGML_TENSOR_BINARY_OP_LOCALS;
 
     const sycl::range<3> block_dims(1, 1, SYCL_GET_ROWS_BLOCK_SIZE);
     const int block_num_x = (ne00 + 2*SYCL_GET_ROWS_BLOCK_SIZE - 1) / (2*SYCL_GET_ROWS_BLOCK_SIZE);
@@ -8336,7 +8336,7 @@ static void get_rows_sycl_float(const ggml_tensor *src0,
                                 const src0_t *src0_dd, const int32_t *src1_dd,
                                 float *dst_dd, dpct::queue_ptr stream) {
 
-    GGML_TENSOR_BINARY_OP_LOCALS
+    GGML_TENSOR_BINARY_OP_LOCALS;
 
     const sycl::range<3> block_dims(1, 1, SYCL_GET_ROWS_BLOCK_SIZE);
     const int block_num_x = (ne00 + SYCL_GET_ROWS_BLOCK_SIZE - 1) / SYCL_GET_ROWS_BLOCK_SIZE;
@@ -8376,7 +8376,7 @@ struct bin_bcast_sycl {
                     const src0_t *src0_dd, const src1_t *src1_dd, dst_t *dst_dd,
                     dpct::queue_ptr stream) {
 
-        GGML_TENSOR_BINARY_OP_LOCALS
+        GGML_TENSOR_BINARY_OP_LOCALS;
 
         int nr0 = ne10/ne0;
         int nr1 = ne11/ne1;
