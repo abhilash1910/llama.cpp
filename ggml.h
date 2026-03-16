@@ -479,6 +479,7 @@ extern "C" {
         GGML_OP_FLASH_ATTN_BACK,
         GGML_OP_SSM_CONV,
         GGML_OP_SSM_SCAN,
+        GGML_OP_GATED_DELTA_NET,
         GGML_OP_WIN_PART,
         GGML_OP_WIN_UNPART,
         GGML_OP_GET_REL_POS,
@@ -749,6 +750,7 @@ extern "C" {
 
     GGML_API GGML_CALL bool ggml_is_transposed(const struct ggml_tensor * tensor);
     GGML_API GGML_CALL bool ggml_is_contiguous(const struct ggml_tensor * tensor);
+    GGML_API GGML_CALL bool ggml_is_contiguous_rows(const struct ggml_tensor * tensor);
     GGML_API GGML_CALL bool ggml_is_permuted  (const struct ggml_tensor * tensor);
     GGML_API GGML_CALL bool ggml_is_empty     (const struct ggml_tensor * tensor);
     GGML_API           bool ggml_is_scalar    (const struct ggml_tensor * tensor);
@@ -1754,6 +1756,21 @@ extern "C" {
             struct ggml_tensor  * B,
             struct ggml_tensor  * C,
             struct ggml_tensor  * sq);
+
+    // gated delta net recurrent update
+    // output layout: concatenated attention scores and updated state
+    // q, k, v: query, key, value tensors [S_v, H, T, B]
+    // g: gate tensor [1 or S_v, H, T, B]
+    // beta: scalar per head/token [1, H, T, B]
+    // state: recurrent state [S_v, S_v, H, B]
+    GGML_API struct ggml_tensor * ggml_gated_delta_net(
+            struct ggml_context * ctx,
+            struct ggml_tensor  * q,
+            struct ggml_tensor  * k,
+            struct ggml_tensor  * v,
+            struct ggml_tensor  * g,
+            struct ggml_tensor  * beta,
+            struct ggml_tensor  * state);
 
     // partition into non-overlapping windows with padding if needed
     // example:
